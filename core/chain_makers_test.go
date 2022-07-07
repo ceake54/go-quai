@@ -19,6 +19,7 @@ package core
 import (
 	"fmt"
 	"math/big"
+	"testing"
 
 	"github.com/spruce-solutions/go-quai/consensus/blake3"
 	"github.com/spruce-solutions/go-quai/core/rawdb"
@@ -97,4 +98,41 @@ func ExampleGenerateChain() {
 	// balance of addr1: 989000
 	// balance of addr2: 10000
 	// balance of addr3: 19687500000000001000
+}
+
+func TestGenerateNetworkBlocks(t *testing.T) {
+	graph := [3][3][]*types.BlockGenSpec{
+		{ // Region1
+			{
+				&types.BlockGenSpec{[3]int{1, 1, 1}, [3]string{}, "z00_1"},
+				&types.BlockGenSpec{[3]int{-1, 2, 2}, [3]string{}, ""},
+				&types.BlockGenSpec{[3]int{-1, -1, 3}, [3]string{}, ""},
+				&types.BlockGenSpec{[3]int{-1, 3, 6}, [3]string{}, ""},
+				&types.BlockGenSpec{[3]int{2, 4, 7}, [3]string{}, ""},
+				//... FORK
+				&types.BlockGenSpec{[3]int{-1, 2, 2}, [3]string{"", "z00_1", "z00_1"}, ""},
+			},
+			{},
+			{}, // ... Zone3 omitted
+		},
+		{}, // ... Region2 omitted
+		{}, // ... Region3 omitted
+	}
+	blocks, err := GenerateNetworkBlocks(graph)
+	if err != nil {
+		t.Errorf("Error in GenerateNetworkBlocks call")
+	}
+	engine := new(blake3.Blake3)
+	//Check Criteria 1: Every tagged block should be identifiable in the output map using the tag as the map key
+	block, found := blocks["z00_1"]
+	if !found {
+		t.Errorf("Tag not found in network")
+	}
+
+	engine.GetDifficultyOrder(block.Header())
+
+	//Check Criteria 2: Every block should have the correct order. Need to implement an engine to calculate Order
+
+	//Check Criteria 3: Block parents should chain as expected. Start at the last block and iterate backwards from it to genesis
+
 }

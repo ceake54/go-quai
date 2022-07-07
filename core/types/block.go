@@ -789,3 +789,9 @@ func currentBlockOntology(number []*big.Int) ([]int, error) {
 		return nil, errors.New("invalid number passed to currentBlockOntology")
 	}
 }
+
+type BlockGenSpec struct {
+	Numbers    [3]int    // prime idx, region idx, zone idx
+	ParentTags [3]string // (optionally) Override the parents to point to tagged blocks. Empty strings are ignored.
+	Tag        string    // (optionally) Give this block a named tag. Empty strings are ignored.
+}
